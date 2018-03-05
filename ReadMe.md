@@ -1,8 +1,8 @@
-#Local Register Allocator
-#####Chris Iverson
-#####Spring 2018
+# Local Register Allocator
+##### Chris Iverson
+##### Spring 2018
 
-###Generating Executable
+### Generating Executable
 
 You can generate the necessary class files for running the allocator by typing `make all`. This will execute the commands:
 ```
@@ -10,7 +10,7 @@ javac -cp Rnode.java Inode.java
 javac alloc.java
 ```
 
-###Running Allocator
+### Running Allocator
 
 Once the .class files have been created, you can run the allocator using the following syntax:
 ```
@@ -21,7 +21,7 @@ Once the .class files have been created, you can run the allocator using the fol
 // String filename => path to target instruction file from current directory
 ```
 
-###Description of Implementation
+### Description of Implementation
 
 My implementation uses three files *alloc.java*, *Inode.java*, and *Rnode.java* in order to implement:
 -Simple Top Down Allocator
