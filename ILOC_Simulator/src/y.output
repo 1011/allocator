@@ -1,0 +1,387 @@
+   0  $accept : iloc_program $end
+
+   1  iloc_program : instruction_list
+
+   2  instruction_list : instruction
+   3                   | label_def instruction
+   4                   | instruction instruction_list
+   5                   | label_def instruction instruction_list
+
+   6  instruction : operation
+   7              | OPEN_BRACKET operation_list CLOSE_BRACKET
+
+   8  operation_list : operation
+   9                 | operation SEMICOLON operation_list
+
+  10  operation : the_opcode operand_list ARROW operand_list
+  11            | the_opcode operand_list
+  12            | the_opcode ARROW operand_list
+  13            | the_opcode
+
+  14  the_opcode : OPCODE
+
+  15  operand_list : reg
+  16               | reg COMMA operand_list
+  17               | const
+  18               | const COMMA operand_list
+  19               | lbl
+  20               | lbl COMMA operand_list
+
+  21  reg : REGISTER
+
+  22  const : NUMBER
+
+  23  lbl : LABEL
+
+  24  label_def : TARGET
+
+state 0
+	$accept : . iloc_program $end  (0)
+
+	OPEN_BRACKET  shift 1
+	OPCODE  shift 2
+	TARGET  shift 3
+	.  error
+
+	iloc_program  goto 4
+	instruction_list  goto 5
+	instruction  goto 6
+	operation  goto 7
+	the_opcode  goto 8
+	label_def  goto 9
+
+
+state 1
+	instruction : OPEN_BRACKET . operation_list CLOSE_BRACKET  (7)
+
+	OPCODE  shift 2
+	.  error
+
+	operation_list  goto 10
+	operation  goto 11
+	the_opcode  goto 8
+
+
+state 2
+	the_opcode : OPCODE .  (14)
+
+	.  reduce 14
+
+
+state 3
+	label_def : TARGET .  (24)
+
+	.  reduce 24
+
+
+state 4
+	$accept : iloc_program . $end  (0)
+
+	$end  accept
+
+
+state 5
+	iloc_program : instruction_list .  (1)
+
+	.  reduce 1
+
+
+state 6
+	instruction_list : instruction .  (2)
+	instruction_list : instruction . instruction_list  (4)
+
+	OPEN_BRACKET  shift 1
+	OPCODE  shift 2
+	TARGET  shift 3
+	$end  reduce 2
+
+	instruction_list  goto 12
+	instruction  goto 6
+	operation  goto 7
+	the_opcode  goto 8
+	label_def  goto 9
+
+
+state 7
+	instruction : operation .  (6)
+
+	.  reduce 6
+
+
+state 8
+	operation : the_opcode . operand_list ARROW operand_list  (10)
+	operation : the_opcode . operand_list  (11)
+	operation : the_opcode . ARROW operand_list  (12)
+	operation : the_opcode .  (13)
+
+	ARROW  shift 13
+	REGISTER  shift 14
+	NUMBER  shift 15
+	LABEL  shift 16
+	$end  reduce 13
+	OPEN_BRACKET  reduce 13
+	CLOSE_BRACKET  reduce 13
+	SEMICOLON  reduce 13
+	OPCODE  reduce 13
+	TARGET  reduce 13
+
+	operand_list  goto 17
+	reg  goto 18
+	const  goto 19
+	lbl  goto 20
+
+
+state 9
+	instruction_list : label_def . instruction  (3)
+	instruction_list : label_def . instruction instruction_list  (5)
+
+	OPEN_BRACKET  shift 1
+	OPCODE  shift 2
+	.  error
+
+	instruction  goto 21
+	operation  goto 7
+	the_opcode  goto 8
+
+
+state 10
+	instruction : OPEN_BRACKET operation_list . CLOSE_BRACKET  (7)
+
+	CLOSE_BRACKET  shift 22
+	.  error
+
+
+state 11
+	operation_list : operation .  (8)
+	operation_list : operation . SEMICOLON operation_list  (9)
+
+	SEMICOLON  shift 23
+	CLOSE_BRACKET  reduce 8
+
+
+state 12
+	instruction_list : instruction instruction_list .  (4)
+
+	.  reduce 4
+
+
+state 13
+	operation : the_opcode ARROW . operand_list  (12)
+
+	REGISTER  shift 14
+	NUMBER  shift 15
+	LABEL  shift 16
+	.  error
+
+	operand_list  goto 24
+	reg  goto 18
+	const  goto 19
+	lbl  goto 20
+
+
+state 14
+	reg : REGISTER .  (21)
+
+	.  reduce 21
+
+
+state 15
+	const : NUMBER .  (22)
+
+	.  reduce 22
+
+
+state 16
+	lbl : LABEL .  (23)
+
+	.  reduce 23
+
+
+state 17
+	operation : the_opcode operand_list . ARROW operand_list  (10)
+	operation : the_opcode operand_list .  (11)
+
+	ARROW  shift 25
+	$end  reduce 11
+	OPEN_BRACKET  reduce 11
+	CLOSE_BRACKET  reduce 11
+	SEMICOLON  reduce 11
+	OPCODE  reduce 11
+	TARGET  reduce 11
+
+
+state 18
+	operand_list : reg .  (15)
+	operand_list : reg . COMMA operand_list  (16)
+
+	COMMA  shift 26
+	$end  reduce 15
+	OPEN_BRACKET  reduce 15
+	CLOSE_BRACKET  reduce 15
+	SEMICOLON  reduce 15
+	ARROW  reduce 15
+	OPCODE  reduce 15
+	TARGET  reduce 15
+
+
+state 19
+	operand_list : const .  (17)
+	operand_list : const . COMMA operand_list  (18)
+
+	COMMA  shift 27
+	$end  reduce 17
+	OPEN_BRACKET  reduce 17
+	CLOSE_BRACKET  reduce 17
+	SEMICOLON  reduce 17
+	ARROW  reduce 17
+	OPCODE  reduce 17
+	TARGET  reduce 17
+
+
+state 20
+	operand_list : lbl .  (19)
+	operand_list : lbl . COMMA operand_list  (20)
+
+	COMMA  shift 28
+	$end  reduce 19
+	OPEN_BRACKET  reduce 19
+	CLOSE_BRACKET  reduce 19
+	SEMICOLON  reduce 19
+	ARROW  reduce 19
+	OPCODE  reduce 19
+	TARGET  reduce 19
+
+
+state 21
+	instruction_list : label_def instruction .  (3)
+	instruction_list : label_def instruction . instruction_list  (5)
+
+	OPEN_BRACKET  shift 1
+	OPCODE  shift 2
+	TARGET  shift 3
+	$end  reduce 3
+
+	instruction_list  goto 29
+	instruction  goto 6
+	operation  goto 7
+	the_opcode  goto 8
+	label_def  goto 9
+
+
+state 22
+	instruction : OPEN_BRACKET operation_list CLOSE_BRACKET .  (7)
+
+	.  reduce 7
+
+
+state 23
+	operation_list : operation SEMICOLON . operation_list  (9)
+
+	OPCODE  shift 2
+	.  error
+
+	operation_list  goto 30
+	operation  goto 11
+	the_opcode  goto 8
+
+
+state 24
+	operation : the_opcode ARROW operand_list .  (12)
+
+	.  reduce 12
+
+
+state 25
+	operation : the_opcode operand_list ARROW . operand_list  (10)
+
+	REGISTER  shift 14
+	NUMBER  shift 15
+	LABEL  shift 16
+	.  error
+
+	operand_list  goto 31
+	reg  goto 18
+	const  goto 19
+	lbl  goto 20
+
+
+state 26
+	operand_list : reg COMMA . operand_list  (16)
+
+	REGISTER  shift 14
+	NUMBER  shift 15
+	LABEL  shift 16
+	.  error
+
+	operand_list  goto 32
+	reg  goto 18
+	const  goto 19
+	lbl  goto 20
+
+
+state 27
+	operand_list : const COMMA . operand_list  (18)
+
+	REGISTER  shift 14
+	NUMBER  shift 15
+	LABEL  shift 16
+	.  error
+
+	operand_list  goto 33
+	reg  goto 18
+	const  goto 19
+	lbl  goto 20
+
+
+state 28
+	operand_list : lbl COMMA . operand_list  (20)
+
+	REGISTER  shift 14
+	NUMBER  shift 15
+	LABEL  shift 16
+	.  error
+
+	operand_list  goto 34
+	reg  goto 18
+	const  goto 19
+	lbl  goto 20
+
+
+state 29
+	instruction_list : label_def instruction instruction_list .  (5)
+
+	.  reduce 5
+
+
+state 30
+	operation_list : operation SEMICOLON operation_list .  (9)
+
+	.  reduce 9
+
+
+state 31
+	operation : the_opcode operand_list ARROW operand_list .  (10)
+
+	.  reduce 10
+
+
+state 32
+	operand_list : reg COMMA operand_list .  (16)
+
+	.  reduce 16
+
+
+state 33
+	operand_list : const COMMA operand_list .  (18)
+
+	.  reduce 18
+
+
+state 34
+	operand_list : lbl COMMA operand_list .  (20)
+
+	.  reduce 20
+
+
+13 terminals, 12 nonterminals
+25 grammar rules, 35 states
