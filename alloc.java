@@ -30,6 +30,7 @@ public class alloc {
 		 * 		//o :== own implementation
 		 * args[2] :== name of input file
 		 */
+		long startTime = System.nanoTime();
 		try {
 			 k = Integer.parseInt(args[0]);
 			 flag = args[1].charAt(0);
@@ -67,6 +68,11 @@ public class alloc {
 				System.out.println("//INVALID FLAG: try 's',  or 't'");
 			
 		}
+
+		long endTime   = System.nanoTime();
+		long totalTime = (endTime - startTime);
+		double milliseconds = totalTime / 1000.0;
+		System.out.println("//Allocation runtime: " + milliseconds + " milliseconds");
 		
 		//Output resultant instructions
 		System.out.println("//___________________________");
@@ -140,8 +146,11 @@ public class alloc {
 		for(Inode node:instructions){
 			// System.out.println(node.toString());
 			// System.out.println(node.info());
-			
-			if(node.op1.substring(0,1).equals("r") && !node.op1.substring(1).equals("0")) {
+			Inode store = null;
+			if(node.cmd.equals("store")){
+				//check the left operand
+				//if its mapped to a virtual register, just replace op1 in instruction node
+				//else add a load instruction => r1 and set op1 => r1
 				String replace = reg_map.get(node.op1);
 				//System.out.println("Replace: " + replace);
 				if(replace.substring(0,1).equals("r")) {
@@ -150,48 +159,51 @@ public class alloc {
 					node.op1 = replace;
 				}else {
 					//this register needs to be loaded from memory BEFORE this instr
-					//look to see which reg in feasible set is available
-					String tmp_instr = "";
-					if(!r1_live) {
-						tmp_instr = "loadAI r0," + replace + " => r1";
-						node.op1 = "r1";
-						r1_live = true;
-					}else if(!r2_live) {
-						tmp_instr = "loadAI r0," + replace + " => r2";
-						node.op1 = "r2";
-						r2_live = true;
-					}else {
-						System.out.println("No feasible register is available for this assignment \n"
-								+ "something needs to be fixed!!");
-						break;
-					}
+					String tmp_instr = "loadAI\tr0, " + replace + "\t=> r1";
+					node.op1 = "r1";
 					Inode tmp = new Inode(tmp_instr);
 					final_instructions.add(tmp);
 				}
-			}
+
+				//check the right operand
+				//if its mapped to a virtual register, just replace op3 in instruction node
+				//else add a load instruction => r2 and set op3 => r2
+				replace = reg_map.get(node.op3);
+				//System.out.println("Replace: " + replace);
+				if(replace.substring(0,1).equals("r")) {
+					//this virtual register is high priority and is mapped to a phys register
+					//no additional instruction needed, just change the op register val
+					node.op3 = replace;
+				}else {
+					//this register needs to be loaded from memory BEFORE this instr
+					String tmp_instr = "loadAI\tr0, " + replace + "\t=> r2";
+					node.op3 = "r2";
+					Inode tmp = new Inode(tmp_instr);
+					final_instructions.add(tmp);
+				}
+			}else{
 			
-			if(!node.op2.isEmpty()) {
-				if(node.op2.substring(0,1).equals("r") && !node.op2.substring(1).equals("0")) {
-					String replace = reg_map.get(node.op2);
+				if(node.op1.substring(0,1).equals("r") && !node.op1.substring(1).equals("0")) {
+					String replace = reg_map.get(node.op1);
 					//System.out.println("Replace: " + replace);
 					if(replace.substring(0,1).equals("r")) {
 						//this virtual register is high priority and is mapped to a phys register
 						//no additional instruction needed, just change the op register val
-						node.op2 = replace;
+						node.op1 = replace;
 					}else {
 						//this register needs to be loaded from memory BEFORE this instr
 						//look to see which reg in feasible set is available
 						String tmp_instr = "";
 						if(!r1_live) {
-							tmp_instr = "loadAI r0," + replace + " => r1";
-							node.op2 = "r1";
+							tmp_instr = "loadAI\tr0, " + replace + "\t=> r1";
+							node.op1 = "r1";
 							r1_live = true;
 						}else if(!r2_live) {
-							tmp_instr = "loadAI r0," + replace + " => r2";
-							node.op2 = "r2";
+							tmp_instr = "loadAI\tr0, " + replace + "\t=> r2";
+							node.op1 = "r2";
 							r2_live = true;
 						}else {
-							System.out.println("//No feasible register is available for this assignment \n"
+							System.out.println("No feasible register is available for this assignment \n"
 									+ "something needs to be fixed!!");
 							break;
 						}
@@ -199,35 +211,65 @@ public class alloc {
 						final_instructions.add(tmp);
 					}
 				}
-			}
-			Inode store = null;
-			if(!node.op3.isEmpty()) {
-				if(node.op3.substring(0,1).equals("r") && !node.op3.substring(1).equals("0")) {
-					String replace = reg_map.get(node.op3);
-					//System.out.println("Replace: " + replace);
-					if(replace.substring(0,1).equals("r")) {
-						//this virtual register is high priority and is mapped to a phys register
-						//no additional instruction needed, just change the op register val
-						node.op3 = replace;
-					}else {
-						//this register will need to be stored in memory immediately after assign
-						String store_instr = "";
-						if(!r1_live) {
-							tmp_instr = "storeAI r1 => r0, " + replace;
-							node.op3 = "r1";
-							r1_live = true;
-						}else if(!r2_live) {
-							tmp_instr = "storeAI r2 => r0, " + replace;
-							node.op3 = "r2";
-							r2_live = true;
+				
+				if(!node.op2.isEmpty()) {
+					if(node.op2.substring(0,1).equals("r") && !node.op2.substring(1).equals("0")) {
+						String replace = reg_map.get(node.op2);
+						//System.out.println("Replace: " + replace);
+						if(replace.substring(0,1).equals("r")) {
+							//this virtual register is high priority and is mapped to a phys register
+							//no additional instruction needed, just change the op register val
+							node.op2 = replace;
+						}else {
+							//this register needs to be loaded from memory BEFORE this instr
+							//look to see which reg in feasible set is available
+							String tmp_instr = "";
+							if(!r1_live) {
+								tmp_instr = "loadAI\tr0, " + replace + "\t=> r1";
+								node.op2 = "r1";
+								r1_live = true;
+							}else if(!r2_live) {
+								tmp_instr = "loadAI\tr0, " + replace + "\t=> r2";
+								node.op2 = "r2";
+								r2_live = true;
+							}else {
+								System.out.println("//No feasible register is available for this assignment \n"
+										+ "something needs to be fixed!!");
+								break;
+							}
+							Inode tmp = new Inode(tmp_instr);
+							final_instructions.add(tmp);
 						}
-						store = new Inode(store_instr);
 					}
 				}
+				
+				if(!node.op3.isEmpty()) {
+					if(node.op3.substring(0,1).equals("r") && !node.op3.substring(1).equals("0")) {
+						String replace = reg_map.get(node.op3);
+						//System.out.println("Replace: " + replace);
+						if(replace.substring(0,1).equals("r")) {
+							//this virtual register is high priority and is mapped to a phys register
+							//no additional instruction needed, just change the op register val
+							node.op3 = replace;
+						}else {
+							//this register will need to be stored in memory immediately after assign
+							String store_instr = "storeAI\tr1\t=> r0, " + replace;
+							node.op3 = "r1";
+							//r1_live = true;
+							store = new Inode(store_instr);
+						}
+					}
+				}
+				// //System.out.println(node.info()+"   ----------->");
+				// node.updateSentence();
+				// //System.out.println(node.toString());
+				// final_instructions.add(node);
+				// if(store != null) {
+				// 	final_instructions.add(store);
+				// 	r1_live = r2_live = false;
+				// }
 			}
-			//System.out.println(node.info()+"   ----------->");
 			node.updateSentence();
-			//System.out.println(node.toString());
 			final_instructions.add(node);
 			if(store != null) {
 				final_instructions.add(store);

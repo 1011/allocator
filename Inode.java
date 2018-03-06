@@ -11,7 +11,7 @@ public class Inode implements Comparable<Inode>{
 	private String sentence;
 	
 	//represents the ILOC command this instruction is issuing
-	private String cmd;
+	String cmd;
 	
 	//register, or value, located after the command and before the comma
 	String op1;
@@ -34,8 +34,8 @@ public class Inode implements Comparable<Inode>{
 	public Inode(String line) {
 		liveCount = 0;
 		liveset = new ArrayList<String>(); 
-		line = line.trim().replaceAll(" +", " \t");
 		this.sentence = line;
+		line = line.trim().replaceAll(" +", " \t");
 	    String[] comps = line.split("\\t");
 	    
 	    int i = 1;
@@ -99,12 +99,12 @@ public class Inode implements Comparable<Inode>{
 		case "store":
 		case "load":
 			//System.out.println("case loadI");
-			this.sentence = this.cmd+"\t"+this.op1+"\t=>\t"+this.op3;
+			this.sentence = this.cmd+"\t"+this.op1+"\t=> "+this.op3;
 			break;
 			
 		case "storeAI":
 			//System.out.println("case storeAI");
-			this.sentence = this.cmd + "\t" +this.op1 + "\t=>\t"+this.op2 +", " +this.op3;
+			this.sentence = this.cmd + "\t" +this.op1 + "\t=> "+this.op2 +", " +this.op3;
 			break;
 			
 		case "outputAI":
@@ -120,7 +120,7 @@ public class Inode implements Comparable<Inode>{
 		case "rshift":
 		case "subI":
 			//System.out.println("case other thingies");
-			this.sentence = this.cmd+"\t"+this.op1+", "+this.op2+"\t=>\t" + this.op3;
+			this.sentence = this.cmd+"\t"+this.op1+", "+this.op2+"\t=> " + this.op3;
 			break;
 		
 		default:

@@ -14,7 +14,7 @@ javac alloc.java
 
 Once the .class files have been created, you can run the allocator using the following syntax:
 ```
-./alloc k f filename
+  java alloc k f filename
 
 // int k => number of registers on target machine
 // char f => flag for allocator mode (s, t)
